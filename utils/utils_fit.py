@@ -80,7 +80,7 @@ def fit_one_epoch(model_train, model, detr_loss, loss_history, eval_callback, op
         with torch.no_grad():
             if cuda:
                 images  = images.cuda(local_rank)
-                targets = [ann.cuda(local_rank) for ann in targets]
+                targets = [{key:ann[key].cuda(local_rank) for key in ann} for ann in targets]
             #----------------------#
             #   清零梯度
             #----------------------#

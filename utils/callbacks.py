@@ -26,11 +26,11 @@ class LossHistory():
         
         os.makedirs(self.log_dir)
         self.writer     = SummaryWriter(self.log_dir)
-        try:
-            dummy_input     = torch.randn(2, 3, input_shape[0], input_shape[1])
-            self.writer.add_graph(model, dummy_input)
-        except:
-            pass
+        # try:
+        #     dummy_input     = torch.randn(2, 3, input_shape[0], input_shape[1])
+        #     self.writer.add_graph(model, dummy_input)
+        # except:
+        #     pass
 
     def append_loss(self, epoch, loss, val_loss):
         if not os.path.exists(self.log_dir):
@@ -119,33 +119,31 @@ class EvalCallback():
         #   给图像增加灰条，实现不失真的resize
         #   也可以直接resize进行识别
         #---------------------------------------------------------#
-        image_data  = resize_image(image, (self.input_shape[1], self.input_shape[0]), self.letterbox_image)
+        image_data  = resize_image(image, self.min_length)
         #---------------------------------------------------------#
         #   添加上batch_size维度
         #---------------------------------------------------------#
         image_data  = np.expand_dims(np.transpose(preprocess_input(np.array(image_data, dtype='float32')), (2, 0, 1)), 0)
 
         with torch.no_grad():
-            images = torch.from_numpy(image_data)
+            images          = torch.from_numpy(image_data)
+            images_shape    = torch.unsqueeze(torch.from_numpy(image_shape), 0)
             if self.cuda:
-                images = images.cuda()
+                images          = images.cuda()
+                images_shape    = images_shape.cuda()
             #---------------------------------------------------------#
             #   将图像输入网络当中进行预测！
             #---------------------------------------------------------#
             outputs = self.net(images)
-            outputs = self.bbox_util.decode_box(outputs)
-            #---------------------------------------------------------#
-            #   将预测框进行堆叠，然后进行非极大抑制
-            #---------------------------------------------------------#
-            results = self.bbox_util.non_max_suppression(torch.cat(outputs, 1), self.num_classes, self.input_shape, 
-                        image_shape, self.letterbox_image, conf_thres = self.confidence, nms_thres = self.nms_iou)
+            results = self.bbox_util(outputs, images_shape, self.confidence)
                                                     
             if results[0] is None: 
                 return 
-
-            top_label   = np.array(results[0][:, 6], dtype = 'int32')
-            top_conf    = results[0][:, 4] * results[0][:, 5]
-            top_boxes   = results[0][:, :4]
+            
+            _results    = results[0].cpu().numpy()
+            top_label   = np.array(_results[:, 5], dtype = 'int32')
+            top_conf    = _results[:, 4]
+            top_boxes   = _results[:, :4]
 
         top_100     = np.argsort(top_conf)[::-1][:self.max_boxes]
         top_boxes   = top_boxes[top_100]
