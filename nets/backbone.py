@@ -151,11 +151,11 @@ class Backbone(BackboneBase):
     """
     ResNet backbone with frozen BatchNorm.
     """
-    def __init__(self, name: str, train_backbone: bool, return_interm_layers: bool,dilation: bool):
+    def __init__(self, name: str, train_backbone: bool, return_interm_layers: bool, dilation: bool, pretrained:bool):
         # 首先利用torchvision里面的model创建一个backbone模型
         backbone = getattr(torchvision.models, name)(
             replace_stride_with_dilation    = [False, False, dilation],
-            pretrained                      = is_main_process(), 
+            pretrained                      = pretrained, 
             norm_layer                      = FrozenBatchNorm2d
         )
         # 根据选择的模型，获得通道数
@@ -180,11 +180,11 @@ class Joiner(nn.Sequential):
 
         return out, pos
 
-def build_backbone(backbone, position_embedding, hidden_dim, train_backbone=False):
+def build_backbone(backbone, position_embedding, hidden_dim, train_backbone=True, pretrained=False):
     # 创建可学习的位置向量还是固定的按'sine'排布的位置向量
     position_embedding  = build_position_encoding(position_embedding, hidden_dim)
     # 创建主干
-    backbone            = Backbone(backbone, train_backbone, False, False)
+    backbone            = Backbone(backbone, train_backbone, False, False, pretrained=pretrained)
     
     # 用于将主干和位置编码模块进行结合
     model               = Joiner(backbone, position_embedding)

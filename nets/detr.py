@@ -28,7 +28,7 @@ class DETR(nn.Module):
     def __init__(self, backbone, position_embedding, hidden_dim, num_classes, num_queries, aux_loss=False, pretrained=False):
         super().__init__()
         # 要使用的主干
-        self.backbone       = build_backbone(backbone, position_embedding, hidden_dim)
+        self.backbone       = build_backbone(backbone, position_embedding, hidden_dim, pretrained=pretrained)
         self.input_proj     = nn.Conv2d(self.backbone.num_channels, hidden_dim, kernel_size=1)
         
         # 要使用的transformers模块

@@ -489,6 +489,10 @@ if __name__ == "__main__":
                 
                 for param in model.backbone.parameters():
                     param.requires_grad = True
+                # ------------------------------------#
+                #   冻结bn层
+                # ------------------------------------#
+                model.freeze_bn()
 
                 epoch_step      = num_train // batch_size
                 epoch_step_val  = num_val // batch_size
