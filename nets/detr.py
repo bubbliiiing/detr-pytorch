@@ -6,9 +6,9 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from . import box_ops
+from . import ops
 from .backbone import build_backbone
-from .misc import NestedTensor, nested_tensor_from_tensor_list
+from .ops import NestedTensor, nested_tensor_from_tensor_list
 from .transformer import build_transformer
 
 
@@ -114,7 +114,7 @@ class PostProcess(nn.Module):
         scores, labels = prob[..., :-1].max(-1)
 
         # convert to [x0, y0, x1, y1] format
-        boxes = box_ops.box_cxcywh_to_xyxy(out_bbox)
+        boxes = ops.box_cxcywh_to_xyxy(out_bbox)
         # and from relative [0, 1] to absolute [0, height] coordinates
         img_h, img_w = target_sizes.unbind(1)
         scale_fct = torch.stack([img_w, img_h, img_w, img_h], dim=1)

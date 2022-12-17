@@ -22,7 +22,6 @@ class DecodeBox(nn.Module):
 
         prob = F.softmax(out_logits, -1)
         scores, labels = prob[..., :-1].max(-1)
-        labels = labels - 1
         
         # convert to [x0, y0, x1, y1] format
         boxes = self.box_cxcywh_to_xyxy(out_bbox)

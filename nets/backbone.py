@@ -11,7 +11,7 @@ import torchvision
 from torch import nn
 from torchvision.models._utils import IntermediateLayerGetter
 
-from nets.misc import NestedTensor, is_main_process
+from .ops import NestedTensor, is_main_process
 
 
 class PositionEmbeddingSine(nn.Module):

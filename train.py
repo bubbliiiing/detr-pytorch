@@ -158,7 +158,7 @@ if __name__ == "__main__":
     #   Unfreeze_batch_size     模型在解冻后的batch_size
     #------------------------------------------------------------------#
     UnFreeze_Epoch      = 300
-    Unfreeze_batch_size = 8
+    Unfreeze_batch_size = 2
     #------------------------------------------------------------------#
     #   Freeze_Train    是否进行冻结训练
     #                   默认先冻结主干训练后解冻训练。
@@ -224,8 +224,8 @@ if __name__ == "__main__":
     #----------------------------------------------------#
     #   获得图片路径和标签
     #----------------------------------------------------#
-    train_annotation_path   = '/data/Disk_D/Study/Collection/Dataset/VOC07+12+test/2007_train.txt'
-    val_annotation_path     = '/data/Disk_D/Study/Collection/Dataset/VOC07+12+test/2007_val.txt'
+    train_annotation_path   = '2007_train.txt'
+    val_annotation_path     = '2007_val.txt'
 
     #------------------------------------------------------#
     #   设置用到的显卡
@@ -456,7 +456,7 @@ if __name__ == "__main__":
         #   记录eval的map曲线
         #----------------------#
         if local_rank == 0:
-            eval_callback   = EvalCallback(model, input_shape, class_names, num_classes, val_lines, log_dir, Cuda, \
+            eval_callback   = EvalCallback(model, input_shape[0], class_names, num_classes, val_lines, log_dir, Cuda, \
                                             eval_flag=eval_flag, period=eval_period)
         else:
             eval_callback   = None

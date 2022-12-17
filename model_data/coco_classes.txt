@@ -1,3 +1,4 @@
+
 person
 bicycle
 car
@@ -88,4 +89,3 @@ scissors
 teddy bear
 hair drier
 toothbrush
- 

@@ -56,16 +56,16 @@ class LossHistory():
         plt.figure()
         plt.plot(iters, self.losses, 'red', linewidth = 2, label='train loss')
         plt.plot(iters, self.val_loss, 'coral', linewidth = 2, label='val loss')
-        try:
-            if len(self.losses) < 25:
-                num = 5
-            else:
-                num = 15
+        # try:
+        #     if len(self.losses) < 25:
+        #         num = 5
+        #     else:
+        #         num = 15
             
-            plt.plot(iters, scipy.signal.savgol_filter(self.losses, num, 3), 'green', linestyle = '--', linewidth = 2, label='smooth train loss')
-            plt.plot(iters, scipy.signal.savgol_filter(self.val_loss, num, 3), '#8B4513', linestyle = '--', linewidth = 2, label='smooth val loss')
-        except:
-            pass
+        #     plt.plot(iters, scipy.signal.savgol_filter(self.losses, num, 3), 'green', linestyle = '--', linewidth = 2, label='smooth train loss')
+        #     plt.plot(iters, scipy.signal.savgol_filter(self.val_loss, num, 3), '#8B4513', linestyle = '--', linewidth = 2, label='smooth val loss')
+        # except:
+        #     pass
 
         plt.grid(True)
         plt.xlabel('Epoch')
