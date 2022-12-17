@@ -29,7 +29,7 @@ class MLP(nn.Module):
 
 class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
-    def __init__(self, backbone, position_embedding, hidden_dim, num_classes, num_queries, aux_loss=True, pretrained=False):
+    def __init__(self, backbone, position_embedding, hidden_dim, num_classes, num_queries, aux_loss=False, pretrained=False):
         """ Initializes the model.
         Parameters:
             backbone: torch module of the backbone to be used. See backbone.py

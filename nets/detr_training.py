@@ -233,7 +233,7 @@ class SetCriterion(nn.Module):
 
         return losses
 
-def build_loss(num_classes, dec_layers=6, aux_loss=True):
+def build_loss(num_classes, dec_layers=6, aux_loss=False):
     matcher                     = HungarianMatcher(cost_class=1, cost_bbox=5, cost_giou=2)
     weight_dict                 = {'loss_ce': 1, 'loss_bbox': 5, 'loss_giou': 2}
     # TODO this is a hack

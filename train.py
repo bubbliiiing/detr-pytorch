@@ -172,19 +172,20 @@ if __name__ == "__main__":
     #   Init_lr         模型的最大学习率
     #   Min_lr          模型的最小学习率，默认为最大学习率的0.01
     #------------------------------------------------------------------#
-    Init_lr             = 1e-2
+    Init_lr             = 1e-3
     Min_lr              = Init_lr * 0.01
     #------------------------------------------------------------------#
     #   optimizer_type  使用到的优化器种类，可选的有adam、sgd
     #                   当使用Adam优化器时建议设置  Init_lr=1e-3
+    #                   当使用AdamW优化器时建议设置  Init_lr=1e-3
     #                   当使用SGD优化器时建议设置   Init_lr=1e-2
     #   momentum        优化器内部使用到的momentum参数
     #   weight_decay    权值衰减，可防止过拟合
     #                   adam会导致weight_decay错误，使用adam时建议设置为0。
     #------------------------------------------------------------------#
-    optimizer_type      = "sgd"
-    momentum            = 0.937
-    weight_decay        = 5e-4
+    optimizer_type      = "adamw"
+    momentum            = 0.9
+    weight_decay        = 1e-4
     #------------------------------------------------------------------#
     #   lr_decay_type   使用到的学习率下降方式，可选的有step、cos
     #------------------------------------------------------------------#
@@ -208,6 +209,11 @@ if __name__ == "__main__":
     #------------------------------------------------------------------#
     eval_flag           = True
     eval_period         = 10
+    #------------------------------------------------------------------#
+    #   官方提示为TODO this is a hack
+    #   稳定性未知，默认为不开启
+    #------------------------------------------------------------------#
+    aux_loss            = False
     #------------------------------------------------------------------#
     #   num_workers     用于设置是否使用多线程读取数据
     #                   开启后会加快数据读取速度，但是会占用更多内存
@@ -383,8 +389,8 @@ if __name__ == "__main__":
         #   判断当前batch_size，自适应调整学习率
         #-------------------------------------------------------------------#
         nbs             = 64
-        lr_limit_max    = 1e-3 if optimizer_type == 'adam' else 5e-2
-        lr_limit_min    = 3e-4 if optimizer_type == 'adam' else 5e-4
+        lr_limit_max    = 1e-3 if optimizer_type in ['adam', 'adamw'] else 5e-2
+        lr_limit_min    = 1e-4 if optimizer_type in ['adam', 'adamw'] else 5e-4
         Init_lr_fit     = min(max(batch_size / nbs * Init_lr, lr_limit_min), lr_limit_max)
         Min_lr_fit      = min(max(batch_size / nbs * Min_lr, lr_limit_min * 1e-2), lr_limit_max * 1e-2)
 
@@ -401,7 +407,8 @@ if __name__ == "__main__":
                 pg1.append(v.weight)   
         optimizer = {
             'adam'  : optim.Adam(pg0, Init_lr_fit, betas = (momentum, 0.999)),
-            'sgd'   : optim.SGD(pg0, Init_lr_fit, momentum = momentum, nesterov=True)
+            'adamw' : optim.AdamW(pg0, Init_lr_fit, betas = (momentum, 0.999)),
+            'sgd'   : optim.SGD(pg0, Init_lr_fit, momentum = momentum, nesterov=True),
         }[optimizer_type]
         optimizer.add_param_group({"params": pg1, "weight_decay": weight_decay})
         optimizer.add_param_group({"params": pg2})
@@ -465,8 +472,8 @@ if __name__ == "__main__":
                 #   判断当前batch_size，自适应调整学习率
                 #-------------------------------------------------------------------#
                 nbs             = 64
-                lr_limit_max    = 1e-3 if optimizer_type == 'adam' else 5e-2
-                lr_limit_min    = 3e-4 if optimizer_type == 'adam' else 5e-4
+                lr_limit_max    = 1e-3 if optimizer_type in ['adam', 'adamw'] else 5e-2
+                lr_limit_min    = 1e-4 if optimizer_type in ['adam', 'adamw'] else 5e-4
                 Init_lr_fit     = min(max(batch_size / nbs * Init_lr, lr_limit_min), lr_limit_max)
                 Min_lr_fit      = min(max(batch_size / nbs * Min_lr, lr_limit_min * 1e-2), lr_limit_max * 1e-2)
                 #---------------------------------------#
