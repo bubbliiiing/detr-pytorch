@@ -224,8 +224,8 @@ if __name__ == "__main__":
     #----------------------------------------------------#
     #   获得图片路径和标签
     #----------------------------------------------------#
-    train_annotation_path   = '2007_train.txt'
-    val_annotation_path     = '2007_val.txt'
+    train_annotation_path   = '/data/Disk_D/Study/Collection/Dataset/VOC07+12+test/2007_train.txt'
+    val_annotation_path     = '/data/Disk_D/Study/Collection/Dataset/VOC07+12+test/2007_val.txt'
 
     #------------------------------------------------------#
     #   设置用到的显卡
@@ -379,6 +379,10 @@ if __name__ == "__main__":
         if Freeze_Train:
             for param in model.backbone.parameters():
                 param.requires_grad = False
+        # ------------------------------------#
+        #   冻结bn层
+        # ------------------------------------#
+        model.freeze_bn()
 
         #-------------------------------------------------------------------#
         #   如果不冻结训练的话，直接设置batch_size为Unfreeze_batch_size
