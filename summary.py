@@ -11,7 +11,7 @@ if __name__ == '__main__':
     backbone            = "resnet50"
     position_embedding  = 'sine'
     hidden_dim          = 256
-    num_classes         = 91
+    num_classes         = 92
     num_queries         = 100
     
     device  = torch.device("cuda" if torch.cuda.is_available() else "cpu")
