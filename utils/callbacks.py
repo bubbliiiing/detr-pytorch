@@ -78,12 +78,12 @@ class LossHistory():
         plt.close("all")
 
 class EvalCallback():
-    def __init__(self, net, input_shape, class_names, num_classes, val_lines, log_dir, cuda, \
+    def __init__(self, net, min_length, class_names, num_classes, val_lines, log_dir, cuda, \
             map_out_path=".temp_map_out", max_boxes=100, confidence=0.05, nms_iou=0.5, letterbox_image=True, MINOVERLAP=0.5, eval_flag=True, period=1):
         super(EvalCallback, self).__init__()
         
         self.net                = net
-        self.input_shape        = input_shape
+        self.min_length         = min_length
         self.class_names        = class_names
         self.num_classes        = num_classes
         self.val_lines          = val_lines
