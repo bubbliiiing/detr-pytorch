@@ -263,7 +263,7 @@ def get_lr_scheduler(lr_decay_type, lr, min_lr, total_iters, warmup_iters_ratio 
 
     return func
 
-def set_optimizer_lr(optimizer, lr_scheduler_func, epoch):
+def set_optimizer_lr(optimizer, lr_scheduler_func, epoch, lr_scale_ratio):
     lr = lr_scheduler_func(epoch)
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+    for i, param_group in enumerate(optimizer.param_groups):
+        param_group['lr'] = lr * lr_scale_ratio[i]

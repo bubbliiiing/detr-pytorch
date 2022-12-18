@@ -163,7 +163,7 @@ if __name__ == "__main__":
     #   其它训练参数：学习率、优化器、学习率下降有关
     #------------------------------------------------------------------#
     #------------------------------------------------------------------#
-    #   Init_lr         模型的最大学习率
+    #   Init_lr         模型的最大学习率，在DETR中，Backbone的学习率为Transformer模块的0.1倍
     #   Min_lr          模型的最小学习率，默认为最大学习率的0.01
     #------------------------------------------------------------------#
     Init_lr             = 1e-4
@@ -399,14 +399,16 @@ if __name__ == "__main__":
         #---------------------------------------#
         #   根据optimizer_type选择优化器
         #---------------------------------------#
-        pg0, pg1, pg2 = [], [], []  
+        pg0, pg1, pg2, pg3 = [], [], [], []
         for k, v in model.named_modules():
             if hasattr(v, "bias") and isinstance(v.bias, nn.Parameter):
                 pg2.append(v.bias)    
             if isinstance(v, nn.BatchNorm2d) or "bn" in k:
-                pg0.append(v.weight)    
+                pg0.append(v.weight)
+            elif hasattr(v, "weight") and "backbone" in k:
+                pg3.append(v.weight)
             elif hasattr(v, "weight") and isinstance(v.weight, nn.Parameter):
-                pg1.append(v.weight)   
+                pg1.append(v.weight)
         optimizer = {
             'adam'  : optim.Adam(pg0, Init_lr_fit, betas = (momentum, 0.999)),
             'adamw' : optim.AdamW(pg0, Init_lr_fit, betas = (momentum, 0.999)),
@@ -414,6 +416,8 @@ if __name__ == "__main__":
         }[optimizer_type]
         optimizer.add_param_group({"params": pg1, "weight_decay": weight_decay})
         optimizer.add_param_group({"params": pg2})
+        optimizer.add_param_group({"params": pg3, "weight_decay": weight_decay, "lr": Init_lr_fit / 10})
+        lr_scale_ratio = [1, 1, 1, 0.1]
 
         #---------------------------------------#
         #   获得学习率下降的公式
@@ -512,7 +516,7 @@ if __name__ == "__main__":
                 
             if distributed:
                 train_sampler.set_epoch(epoch)
-            set_optimizer_lr(optimizer, lr_scheduler_func, epoch)
+            set_optimizer_lr(optimizer, lr_scheduler_func, epoch, lr_scale_ratio)
 
             fit_one_epoch(model_train, model, detr_loss, loss_history, eval_callback, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val, UnFreeze_Epoch, Cuda, fp16, scaler, save_period, save_dir, local_rank)
                         
