@@ -116,10 +116,13 @@ class NestedTensor(object):
 def nested_tensor_from_tensor_list(tensor_list: List[Tensor]):
     # TODO make this more general
     if tensor_list[0].ndim == 3:
-        if torchvision._is_tracing():
-            # nested_tensor_from_tensor_list() does not export well to ONNX
-            # call _onnx_nested_tensor_from_tensor_list() instead
-            return _onnx_nested_tensor_from_tensor_list(tensor_list)
+        try:
+            if torchvision._is_tracing():
+                # nested_tensor_from_tensor_list() does not export well to ONNX
+                # call _onnx_nested_tensor_from_tensor_list() instead
+                return _onnx_nested_tensor_from_tensor_list(tensor_list)
+        except:
+            pass
 
         # TODO make it support different-sized images
         max_size = _max_by_axis([list(img.shape) for img in tensor_list])
@@ -137,9 +140,17 @@ def nested_tensor_from_tensor_list(tensor_list: List[Tensor]):
         raise ValueError('not supported')
     return NestedTensor(tensor, mask)
 
+def wrap(callback):
+    def f(*args, **kwargs):
+        r = callback(*args, **kwargs)
+        return r
+    return f
+
+unused = torch.jit.unused if hasattr(torch.jit, "unused") else wrap
+
 # _onnx_nested_tensor_from_tensor_list() is an implementation of
 # nested_tensor_from_tensor_list() that is supported by ONNX tracing.
-@torch.jit.unused
+@unused
 def _onnx_nested_tensor_from_tensor_list(tensor_list: List[Tensor]) -> NestedTensor:
     max_size = []
     for i in range(tensor_list[0].dim()):

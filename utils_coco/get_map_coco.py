@@ -59,12 +59,12 @@ class mAP_Detection_Transformers(Detection_Transformers):
             #   将图像输入网络当中进行预测！
             #---------------------------------------------------------#
             outputs = self.net(images)
-            results = self.bbox_util(outputs, images_shape, self.confidence)
+            outputs = self.bbox_util(outputs, images_shape, self.confidence)
                                                     
-            if results[0] is None: 
+            if outputs[0] is None: 
                 return 
             
-            _results    = results[0].cpu().numpy()
+            _results    = outputs[0].cpu().numpy()
             top_label   = np.array(_results[:, 5], dtype = 'int32')
             top_conf    = _results[:, 4]
             top_boxes   = _results[:, :4]
@@ -74,7 +74,7 @@ class mAP_Detection_Transformers(Detection_Transformers):
             top, left, bottom, right    = top_boxes[i]
 
             result["image_id"]      = int(image_id)
-            result["category_id"]   = clsid2catid[c]
+            result["category_id"]   = int(c)
             result["bbox"]          = [float(left),float(top),float(right-left),float(bottom-top)]
             result["score"]         = float(top_conf[i])
             results.append(result)
@@ -86,7 +86,6 @@ if __name__ == "__main__":
 
     cocoGt      = COCO(cocoGt_path)
     ids         = list(cocoGt.imgToAnns.keys())
-    clsid2catid = cocoGt.getCatIds()
 
     if map_mode == 0 or map_mode == 1:
         Detection_Transformers = mAP_Detection_Transformers(confidence = 0.001, nms_iou = 0.65)

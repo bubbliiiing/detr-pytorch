@@ -28,7 +28,7 @@ class Detection_Transformers(object):
         "model_path"        : 'model_data/detr_resnet50_weights_coco.pth',
         "classes_path"      : 'model_data/coco_classes.txt',
         #---------------------------------------------------------------------#
-        #   输入图片的大小，必须为32的倍数。
+        #   输入图片的大小
         #---------------------------------------------------------------------#
         "min_length"        : 800,
         #---------------------------------------------------------------------#
@@ -54,7 +54,7 @@ class Detection_Transformers(object):
             return "Unrecognized attribute name '" + n + "'"
 
     #---------------------------------------------------#
-    #   初始化YOLO
+    #   初始化detr
     #---------------------------------------------------#
     def __init__(self, **kwargs):
         self.__dict__.update(self._defaults)
@@ -83,7 +83,7 @@ class Detection_Transformers(object):
     #---------------------------------------------------#
     def generate(self, onnx=False):
         #---------------------------------------------------#
-        #   建立yolov3模型，载入yolov3模型的权重
+        #   建立detr模型，载入detr模型的权重
         #---------------------------------------------------#
         self.net    = DETR(self.backbone, 'sine', 256, self.num_classes, num_queries=100)
         device      = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

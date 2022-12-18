@@ -5,8 +5,9 @@ from torch import nn
 
 from . import ops
 from .backbone import build_backbone
-from .ops import NestedTensor, nested_tensor_from_tensor_list
+from .ops import NestedTensor, nested_tensor_from_tensor_list, unused
 from .transformer import build_transformer
+
 
 
 class MLP(nn.Module):
@@ -71,7 +72,7 @@ class DETR(nn.Module):
             out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord)
         return out
 
-    @torch.jit.unused
+    @unused
     def _set_aux_loss(self, outputs_class, outputs_coord):
         return [{'pred_logits': a, 'pred_boxes': b} for a, b in zip(outputs_class[:-1], outputs_coord[:-1])]
         
