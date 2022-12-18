@@ -203,7 +203,7 @@ def build_loss(num_classes, dec_layers=6, aux_loss=False):
         for i in range(dec_layers - 1):
             aux_weight_dict.update({k + f'_{i}': v for k, v in weight_dict.items()})
         weight_dict.update(aux_weight_dict)
-    # 要用到的三个损失
+    # 要计算的三个内容
     losses      = ['labels', 'boxes', 'cardinality']
     
     # 构建损失的类
