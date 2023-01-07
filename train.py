@@ -18,7 +18,7 @@ from nets.detr_training import (build_loss, get_lr_scheduler, set_optimizer_lr,
                                 weights_init)
 from utils.callbacks import LossHistory, EvalCallback
 from utils.dataloader import DetrDataset, detr_dataset_collate
-from utils.utils import get_anchors, get_classes, show_config
+from utils.utils import get_classes, show_config
 from utils.utils_fit import fit_one_epoch
 
 '''

@@ -43,17 +43,6 @@ def get_classes(classes_path):
     return class_names, len(class_names)
 
 #---------------------------------------------------#
-#   获得先验框
-#---------------------------------------------------#
-def get_anchors(anchors_path):
-    '''loads the anchors from a file'''
-    with open(anchors_path, encoding='utf-8') as f:
-        anchors = f.readline()
-    anchors = [float(x) for x in anchors.split(',')]
-    anchors = np.array(anchors).reshape(-1, 2)
-    return anchors, len(anchors)
-
-#---------------------------------------------------#
 #   获得学习率
 #---------------------------------------------------#
 def get_lr(optimizer):
