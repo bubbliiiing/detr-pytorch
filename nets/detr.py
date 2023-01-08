@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from . import ops
-from .backbone import build_backbone
+from .backbone import build_backbone, FrozenBatchNorm2d
 from .ops import NestedTensor, nested_tensor_from_tensor_list, unused
 from .transformer import build_transformer
 
@@ -78,5 +78,5 @@ class DETR(nn.Module):
         
     def freeze_bn(self):
         for m in self.modules():
-            if isinstance(m, nn.BatchNorm2d):
+            if isinstance(m, nn.BatchNorm2d) or isinstance(m, FrozenBatchNorm2d):
                 m.eval()
