@@ -8,7 +8,7 @@ import torch.nn as nn
 from PIL import ImageDraw, ImageFont
 
 from nets.detr import DETR
-from utils.utils import (cvtColor, get_anchors, get_classes, preprocess_input,
+from utils.utils import (cvtColor, get_classes, preprocess_input,
                          resize_image, show_config)
 from utils.utils_bbox import DecodeBox
 
