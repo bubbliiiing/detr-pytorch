@@ -40,6 +40,7 @@ def fit_one_epoch(model_train, model, detr_loss, loss_history, eval_callback, op
             #   反向传播
             #----------------------#
             loss_value.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
             optimizer.step()
         else:
             from torch.cuda.amp import autocast
@@ -56,6 +57,7 @@ def fit_one_epoch(model_train, model, detr_loss, loss_history, eval_callback, op
             #   反向传播
             #----------------------#
             scaler.scale(loss_value).backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
             scaler.step(optimizer)
             scaler.update()
 
