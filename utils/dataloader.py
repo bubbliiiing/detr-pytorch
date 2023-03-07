@@ -34,6 +34,8 @@ class DetrDataset(Dataset):
 
             box[:, 2:4] = box[:, 2:4] - box[:, 0:2]
             box[:, 0:2] = box[:, 0:2] + box[:, 2:4] / 2
+        else:
+            box = np.zeros([0, 5], np.float32)
         return image, box
 
     def rand(self, a=0, b=1):
@@ -162,8 +164,8 @@ def detr_dataset_collate(batch):
         images.append(img)
         bboxes.append(box)
     images = torch.from_numpy(np.array(images)).type(torch.FloatTensor)
-    labels = [torch.from_numpy(ann[:, 4]).type(torch.FloatTensor) for ann in bboxes]
-    boxes  = [torch.from_numpy(ann[:, :4]).type(torch.FloatTensor) for ann in bboxes]
+    # labels = [torch.from_numpy(ann[:, 4]).type(torch.FloatTensor) for ann in bboxes]
+    # boxes  = [torch.from_numpy(ann[:, :4]).type(torch.FloatTensor) for ann in bboxes]
 
     targets = [
         {
