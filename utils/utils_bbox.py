@@ -27,6 +27,8 @@ class DecodeBox(nn.Module):
         boxes = self.box_cxcywh_to_xyxy(out_bbox)
         # and from relative [0, 1] to absolute [0, height] coordinates
         img_h, img_w    = target_sizes.unbind(1)
+        img_h           = img_h.float()
+        img_w           = img_w.float()
         scale_fct       = torch.stack([img_w, img_h, img_w, img_h], dim=1)
         boxes           = boxes * scale_fct[:, None, :]
 
@@ -36,7 +38,7 @@ class DecodeBox(nn.Module):
                 torch.unsqueeze(boxes[:, :, 3], -1),
                 torch.unsqueeze(boxes[:, :, 2], -1),
                 torch.unsqueeze(scores, -1),
-                torch.unsqueeze(labels, -1),    
+                torch.unsqueeze(labels.float(), -1),    
             ], -1)
         
         results = []
