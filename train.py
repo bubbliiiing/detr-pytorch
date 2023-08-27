@@ -3,6 +3,7 @@
 #-------------------------------------#
 import datetime
 import os
+from functools import partial
 
 import numpy as np
 import torch
@@ -16,9 +17,10 @@ from torch.utils.data import DataLoader
 from nets.detr import DETR
 from nets.detr_training import (build_loss, get_lr_scheduler, set_optimizer_lr,
                                 weights_init)
-from utils.callbacks import LossHistory, EvalCallback
+from utils.callbacks import EvalCallback, LossHistory
 from utils.dataloader import DetrDataset, detr_dataset_collate
-from utils.utils import get_classes, show_config
+from utils.utils import (get_classes, seed_everything, show_config,
+                         worker_init_fn)
 from utils.utils_fit import fit_one_epoch
 
 '''
@@ -43,6 +45,11 @@ if __name__ == "__main__":
     #           没有GPU可以设置成False
     #---------------------------------#
     Cuda            = True
+    #----------------------------------------------#
+    #   Seed    用于固定随机种子
+    #           使得每次独立训练都可以获得一样的结果
+    #----------------------------------------------#
+    seed            = 11
     #---------------------------------------------------------------------#
     #   distributed     用于指定是否使用单机多卡分布式运行
     #                   终端指令仅支持Ubuntu。CUDA_VISIBLE_DEVICES用于在Ubuntu下指定显卡。
@@ -217,6 +224,7 @@ if __name__ == "__main__":
     train_annotation_path   = '2007_train.txt'
     val_annotation_path     = '2007_val.txt'
 
+    seed_everything(seed)
     #------------------------------------------------------#
     #   设置用到的显卡
     #------------------------------------------------------#
@@ -232,6 +240,7 @@ if __name__ == "__main__":
     else:
         device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         local_rank      = 0
+        rank            = 0
 
     #----------------------------------------------------#
     #   获取classes和anchor
@@ -388,25 +397,19 @@ if __name__ == "__main__":
         #---------------------------------------#
         #   根据optimizer_type选择优化器
         #---------------------------------------#
-        pg0, pg1, pg2, pg3 = [], [], [], []
-        for k, v in model.named_modules():
-            if hasattr(v, "bias") and isinstance(v.bias, nn.Parameter):
-                pg2.append(v.bias)    
-            if isinstance(v, nn.BatchNorm2d) or "bn" in k:
-                pg0.append(v.weight)
-            elif hasattr(v, "weight") and "backbone" in k:
-                pg3.append(v.weight)
-            elif hasattr(v, "weight") and isinstance(v.weight, nn.Parameter):
-                pg1.append(v.weight)
+        param_dicts = [
+            {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
+            {
+                "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
+                "lr": Init_lr_fit / 10,
+            },
+        ]
         optimizer = {
-            'adam'  : optim.Adam(pg0, Init_lr_fit, betas = (momentum, 0.999)),
-            'adamw' : optim.AdamW(pg0, Init_lr_fit, betas = (momentum, 0.999)),
-            'sgd'   : optim.SGD(pg0, Init_lr_fit, momentum = momentum, nesterov=True),
+            'adam'  : optim.Adam(param_dicts, Init_lr_fit, betas = (momentum, 0.999), weight_decay=weight_decay),
+            'adamw' : optim.AdamW(param_dicts, Init_lr_fit, betas = (momentum, 0.999), weight_decay=weight_decay),
+            'sgd'   : optim.SGD(param_dicts, Init_lr_fit, momentum = momentum, nesterov=True, weight_decay=weight_decay),
         }[optimizer_type]
-        optimizer.add_param_group({"params": pg1, "weight_decay": weight_decay})
-        optimizer.add_param_group({"params": pg2})
-        optimizer.add_param_group({"params": pg3, "weight_decay": weight_decay, "lr": Init_lr_fit / 10})
-        lr_scale_ratio = [1, 1, 1, 0.1]
+        lr_scale_ratio = [1, 0.1]
 
         #---------------------------------------#
         #   获得学习率下降的公式
@@ -439,9 +442,11 @@ if __name__ == "__main__":
             shuffle         = True
 
         gen             = DataLoader(train_dataset, shuffle = shuffle, batch_size = batch_size, num_workers = num_workers, pin_memory=True,
-                                    drop_last=True, collate_fn=detr_dataset_collate, sampler=train_sampler)
+                                    drop_last=True, collate_fn=detr_dataset_collate, sampler=train_sampler, 
+                                    worker_init_fn=partial(worker_init_fn, rank=rank, seed=seed))
         gen_val         = DataLoader(val_dataset  , shuffle = shuffle, batch_size = batch_size, num_workers = num_workers, pin_memory=True, 
-                                    drop_last=True, collate_fn=detr_dataset_collate, sampler=val_sampler)
+                                    drop_last=True, collate_fn=detr_dataset_collate, sampler=val_sampler, 
+                                    worker_init_fn=partial(worker_init_fn, rank=rank, seed=seed))
 
         #----------------------#
         #   记录eval的map曲线
@@ -497,9 +502,11 @@ if __name__ == "__main__":
                     batch_size = batch_size // ngpus_per_node
                     
                 gen             = DataLoader(train_dataset, shuffle = shuffle, batch_size = batch_size, num_workers = num_workers, pin_memory=True,
-                                            drop_last=True, collate_fn=detr_dataset_collate, sampler=train_sampler)
+                                            drop_last=True, collate_fn=detr_dataset_collate, sampler=train_sampler, 
+                                            worker_init_fn=partial(worker_init_fn, rank=rank, seed=seed))
                 gen_val         = DataLoader(val_dataset  , shuffle = shuffle, batch_size = batch_size, num_workers = num_workers, pin_memory=True, 
-                                            drop_last=True, collate_fn=detr_dataset_collate, sampler=val_sampler)
+                                            drop_last=True, collate_fn=detr_dataset_collate, sampler=val_sampler, 
+                                            worker_init_fn=partial(worker_init_fn, rank=rank, seed=seed))
 
                 UnFreeze_flag = True
                 
