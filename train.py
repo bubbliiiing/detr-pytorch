@@ -398,9 +398,9 @@ if __name__ == "__main__":
         #   根据optimizer_type选择优化器
         #---------------------------------------#
         param_dicts = [
-            {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
+            {"params": [p for n, p in model.named_parameters() if "backbone" not in n]},
             {
-                "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
+                "params": [p for n, p in model.named_parameters() if "backbone" in n],
                 "lr": Init_lr_fit / 10,
             },
         ]
